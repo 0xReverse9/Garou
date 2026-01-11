@@ -1,0 +1,27 @@
+version: '3.8'
+
+# Docker Compose pour VM1 (Proxmox)
+# Contient le serveur Narrator
+# VM1 IP: 172.16.1.1/24, Gateway: 172.16.1.254 (VM3)
+
+services:
+  narrator:
+    image: localhost:443/garou-narrator:latest
+    container_name: garou-narrator
+    hostname: narrator
+    ports:
+      - "5000:5000"
+    environment:
+      - NARRATOR_HOST=0.0.0.0
+      - NARRATOR_PORT=5000
+      - EXPECTED_PLAYERS=3
+    networks:
+      - garou-network
+    restart: unless-stopped
+
+networks:
+  garou-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
