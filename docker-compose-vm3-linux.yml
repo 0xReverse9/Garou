@@ -10,6 +10,7 @@ services:
     image: localhost:443/garou-player:latest
     container_name: garou-player1
     hostname: player1
+    pull_policy: always
     environment:
       - PLAYER_ID=player1
       - NARRATOR_HOST=172.16.1.1  # VM1 IP via VM3 router
@@ -24,6 +25,7 @@ services:
     image: localhost:443/garou-player:latest
     container_name: garou-player2
     hostname: player2
+    pull_policy: always
     environment:
       - PLAYER_ID=player2
       - NARRATOR_HOST=172.16.1.1  # VM1 IP via VM3 router
