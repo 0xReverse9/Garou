@@ -63,14 +63,18 @@ class NarratorServer:
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_socket.bind((self.host, self.port))
         server_socket.listen(10)
+        server_socket.settimeout(1.0)
 
         print(f"[NARRATOR] Serveur démarré sur {self.host}:{self.port}")
         print(f"[NARRATOR] En attente de {self.expected_players} joueurs...\n")
 
         try:
             while len(self.players) < self.expected_players:
-                conn, addr = server_socket.accept()
-                threading.Thread(target=self.handle_player_connection, args=(conn, addr), daemon=True).start()
+                try:
+                    conn, addr = server_socket.accept()
+                    threading.Thread(target=self.handle_player_connection, args=(conn, addr), daemon=True).start()
+                except socket.timeout:
+                    continue
 
             # Tous les joueurs sont connectés (ou le nombre attendu est atteint)
             print(f"\n[NARRATOR] Tous les joueurs sont connectés ! Démarrage de la partie...\n")
@@ -85,6 +89,7 @@ class NarratorServer:
     def handle_player_connection(self, conn: socket.socket, addr: tuple):
         """Gère la connexion d'un nouveau joueur"""
         try:
+            conn.settimeout(None)
             # Réception du message de connexion
             data = conn.recv(BUFFER_SIZE).decode('utf-8').strip()
             message = json.loads(data)
