@@ -72,7 +72,7 @@ class NarratorServer:
                 conn, addr = server_socket.accept()
                 threading.Thread(target=self.handle_player_connection, args=(conn, addr), daemon=True).start()
 
-            # Tous les joueurs sont connectés
+            # Tous les joueurs sont connectés (ou le nombre attendu est atteint)
             print(f"\n[NARRATOR] Tous les joueurs sont connectés ! Démarrage de la partie...\n")
             time.sleep(4)
             self.start_game()
@@ -96,9 +96,10 @@ class NarratorServer:
                     player = Player(conn, addr, player_id)
                     self.players[player_id] = player
                     print(f"[CONNECTION] {player_id} connecté depuis {addr}")
-
-                    # Confirmation de connexion
                     player.send_message('CONNECTED', {'player_id': player_id, 'status': 'waiting'})
+
+                    if len(self.players) == self.expected_players:
+                        self.game_started = True # Set game_started to True to break the loop in start()
 
                 # Garder la connexion ouverte
                 while True:
