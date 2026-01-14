@@ -19,7 +19,6 @@ services:
     restart: unless-stopped
     depends_on:
       - player2
-      - player3
 
   player2:
     image: localhost:443/garou-player:latest

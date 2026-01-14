@@ -26,13 +26,6 @@ cd ..
 echo "✓ player OK"
 echo ""
 
-echo "[3/3] Construction de l'image AI..."
-cd windows_ai
-docker build -t localhost:443/garou-ai:$VERSION -t localhost:443/garou-ai:latest .
-cd ..
-echo "✓ AI OK"
-echo ""
-
 echo "========================================="
 echo "  ✓ Toutes les images sont prêtes !"
 echo "  Images construites:"
