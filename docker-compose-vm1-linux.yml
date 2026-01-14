@@ -19,6 +19,18 @@ services:
       - garou-network
     restart: unless-stopped
 
+  player3:
+    image: localhost:443/garou-player:latest
+    container_name: garou-player3
+    hostname: player3
+    environment:
+      - PLAYER_ID=player3
+      - NARRATOR_HOST=narrator
+      - NARRATOR_PORT=5000
+    networks:
+      - garou-network
+    restart: unless-stopped
+
 networks:
   garou-network:
     driver: bridge

@@ -1,4 +1,4 @@
-# 🐺 Loup-Garou Distribué - Projet Systèmes & Réseaux
+#  Loup-Garou Distribué - Projet Systèmes & Réseaux
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
@@ -54,7 +54,7 @@
 │ │   player1    │ │ │ │   player2    │ │  player3   │ │ │ │   AI    │ │
 │ │              │ │ │ │              │ │            │ │ │ │ (bonus) │ │
 │ │ Client TCP   │ │ │ │ Client TCP   │ │ Client TCP │ │ │ │ Client  │ │
-│ │ IA auto      │ │ │ │ IA auto      │ │ IA auto    │ │ │ │ TCP     │ │
+│ │ Ordinateur auto      │ │ │ │ Ordinateur auto      │ │ Ordinateur auto    │ │ │ │ TCP     │ │
 │ └──────────────┘ │ │ └──────────────┘ └────────────┘ │ │ └─────────┘ │
 └──────────────────┘ └──────────────────────────────────┘ └─────────────┘
 ```
@@ -64,8 +64,8 @@
 | Composant | Type | VM | Rôle |
 |-----------|------|----|----- |
 | **narrator** | Serveur TCP | VM1 | Orchestrateur du jeu, gère toutes les phases |
-| **player1, 2, 3** | Clients TCP | VM2 | Joueurs avec IA automatique |
-| **decision_ai** | Client TCP | Windows (bonus) | IA d'analyse avancée |
+| **player1, 2, 3** | Clients TCP | VM2 | Joueurs avec Ordinateur automatique |
+| **decision_ai** | Client TCP | Windows (bonus) | Ordinateur d'analyse avancée |
 
 ---
 
@@ -90,7 +90,7 @@ Tous les messages sont en **JSON** suivis d'un `\n`.
 {
   "type": "WELCOME",
   "data": {
-    "role": "WEREWOLF",
+    "role": "LOUPGAROU",
     "role_name": "Loup-Garou",
     "description": "Vous êtes un Loup-Garou..."
   }
@@ -118,7 +118,7 @@ Tous les messages sont en **JSON** suivis d'un `\n`.
   "type": "VOTE_RESULT",
   "data": {
     "eliminated": "player2",
-    "role": "VILLAGER",
+    "role": "VILLAGEOIS",
     "votes": {"player2": 2, "player3": 1}
   }
 }
@@ -191,10 +191,10 @@ project/
 │   ├── narrator.py        # Serveur TCP orchestrateur
 │   └── Dockerfile
 ├── player/
-│   ├── player.py          # Client TCP avec IA
+│   ├── player.py          # Client TCP avec Ordinateur
 │   └── Dockerfile
 ├── windows_ai/
-│   ├── ai.py              # IA d'analyse avancée
+│   ├── ai.py              # Ordinateur d'analyse avancée
 │   └── Dockerfile
 ├── docker-compose-vm1.yml     # Déploiement VM1
 ├── docker-compose-vm2.yml     # Déploiement VM2
@@ -281,7 +281,7 @@ docker-compose -f docker-compose-vm2.yml up
 
 Les 3 joueurs se connectent automatiquement.
 
-#### 3. (Optionnel) Démarrer l'IA (Windows)
+#### 3. (Optionnel) Démarrer l'Ordinateur (Windows)
 
 ```bash
 docker-compose -f docker-compose-windows.yml up
@@ -315,24 +315,24 @@ Tous les containers tournent sur la même machine.
 
 3. **Tour 1 - Nuit** :
    ```
-   [NIGHT] 🌙 La nuit tombe...
-   [NIGHT] 🐺 Les loups attaquent player3
-   [NIGHT] 🔮 La Voyante espionne player1
+   [NUIT]  La nuit tombe...
+   [NUIT]  Les loups attaquent player3
+   [NUIT]  La Voyante espionne player1
    ```
 
 4. **Tour 1 - Jour** :
    ```
-   [DAY] ☀️ Le jour se lève...
-   [DAY] player3 a été dévoré !
-   [DAY] 🗳️ Vote du village...
-   [DAY] player1 vote contre player2
-   [DAY] player2 vote contre player1
-   [DAY] player1 est éliminé (rôle: Loup-Garou)
+   [JOUR]  Le jour se lève...
+   [JOUR] player3 a été dévoré !
+   [JOUR]  Vote du village...
+   [JOUR] player1 vote contre player2
+   [JOUR] player2 vote contre player1
+   [JOUR] player1 est éliminé (rôle: Loup-Garou)
    ```
 
 5. **Fin de partie** :
    ```
-   [GAME OVER] 🎉 Les Villageois ont gagné !
+   [GAME OVER]  Les Villageois ont gagné !
    ```
 
 ### Logs observables
@@ -373,7 +373,7 @@ threading.Thread(target=self.handle_player_connection, args=(conn, addr))
 
 Chaque client a sa propre connexion TCP gérée en parallèle.
 
-### 4. IA automatique
+### 4. Ordinateur automatique
 
 Les joueurs prennent des décisions seuls :
 - **Loup-Garou** : Cible aléatoire
