@@ -18,9 +18,9 @@ BUFFER_SIZE = 4096
 
 # Rôles disponibles
 ROLES = {
-    'WEREWOLF': 'Loup-Garou',
-    'VILLAGER': 'Villageois',
-    'SEER': 'Voyante'
+    'LOUPGAROU': 'Loup-Garou',
+    'VILLAGEOIS': 'Villageois',
+    'VOYANTE': 'Voyante'
 }
 
 
@@ -41,7 +41,7 @@ class Player:
         }
         try:
             self.conn.sendall(json.dumps(message).encode('utf-8') + b'\n')
-            print(f"[SEND → {self.player_id}] {msg_type}: {data}")
+            print(f"[SEND -> {self.player_id}] {msg_type}: {data}")
         except Exception as e:
             print(f"[ERROR] Erreur d'envoi vers {self.player_id}: {e}")
 
@@ -74,7 +74,7 @@ class NarratorServer:
 
             # Tous les joueurs sont connectés
             print(f"\n[NARRATOR] Tous les joueurs sont connectés ! Démarrage de la partie...\n")
-            time.sleep(2)
+            time.sleep(4)
             self.start_game()
 
         except KeyboardInterrupt:
@@ -102,7 +102,7 @@ class NarratorServer:
 
                 # Garder la connexion ouverte
                 while True:
-                    time.sleep(1)
+                    time.sleep(3)
 
         except Exception as e:
             print(f"[ERROR] Erreur avec {addr}: {e}")
@@ -114,7 +114,7 @@ class NarratorServer:
 
         # Attribution aléatoire des rôles
         self.assign_roles()
-        time.sleep(2)
+        time.sleep(4)
 
         # Boucle de jeu
         turn = 1
@@ -147,7 +147,7 @@ class NarratorServer:
         random.shuffle(player_list)
 
         # 1 Loup-Garou, 1 Voyante, le reste Villageois
-        roles_to_assign = ['WEREWOLF', 'SEER'] + ['VILLAGER'] * (len(player_list) - 2)
+        roles_to_assign = ['LOUPGAROU', 'VOYANTE'] + ['VILLAGEOIS'] * (len(player_list) - 2)
 
         for player, role in zip(player_list, roles_to_assign):
             player.role = role
@@ -156,22 +156,22 @@ class NarratorServer:
                 'role_name': ROLES[role],
                 'description': self.get_role_description(role)
             })
-            print(f"[ROLE] {player.player_id} → {ROLES[role]}")
+            print(f"[ROLE] {player.player_id} -> {ROLES[role]}")
 
         print()
 
     def get_role_description(self, role: str) -> str:
         """Retourne la description d'un rôle"""
         descriptions = {
-            'WEREWOLF': 'Vous êtes un Loup-Garou. Chaque nuit, désignez une victime.',
-            'SEER': 'Vous êtes la Voyante. Chaque nuit, espionnez un joueur.',
-            'VILLAGER': 'Vous êtes un Villageois. Votez le jour pour éliminer les loups.'
+            'LOUPGAROU': 'Vous êtes un Loup-Garou. Chaque nuit, désignez une victime.',
+            'VOYANTE': 'Vous êtes la Voyante. Chaque nuit, espionnez un joueur.',
+            'VILLAGEOIS': 'Vous êtes un Villageois. Votez le jour pour éliminer les loups.'
         }
         return descriptions.get(role, '')
 
     def night_phase(self):
         """Phase de nuit : actions des loups et voyante"""
-        print("[NIGHT] 🌙 La nuit tombe sur le village...\n")
+        print("[NUIT] La nuit tombe sur le village...\n")
 
         # Notifier tous les joueurs
         alive_players = [p.player_id for p in self.players.values() if p.alive]
@@ -179,80 +179,84 @@ class NarratorServer:
             if player.alive:
                 player.send_message('NIGHT_PHASE', {'alive_players': alive_players})
 
-        time.sleep(1)
+        time.sleep(3)
 
         # Actions des Loups-Garous
-        werewolf_target = self.request_werewolf_action()
+        LOUPGAROU_target = self.request_loup_garou_action()
 
         # Action de la Voyante
-        seer_target = self.request_seer_action()
+        VOYANTE_target = self.request_voyante_action()
 
         # Résultats de la nuit
-        if werewolf_target:
-            victim = self.players.get(werewolf_target)
+        if LOUPGAROU_target:
+            victim = self.players.get(LOUPGAROU_target)
             if victim and victim.alive:
                 victim.alive = False
-                print(f"[NIGHT] ⚰️  {werewolf_target} a été dévoré par les loups !\n")
+                print(f"[NUIT] {LOUPGAROU_target} a été dévoré par les loups !\n")
 
-        if seer_target:
-            target = self.players.get(seer_target)
+        if VOYANTE_target:
+            target = self.players.get(VOYANTE_target)
             if target:
-                seer = next((p for p in self.players.values() if p.role == 'SEER' and p.alive), None)
-                if seer:
-                    seer.send_message('SEER_RESULT', {
-                        'target': seer_target,
-                        'is_werewolf': target.role == 'WEREWOLF'
+                VOYANTE = next((p for p in self.players.values() if p.role == 'VOYANTE' and p.alive), None)
+                if VOYANTE:
+                    VOYANTE.send_message('VOYANTE_RESULT', {
+                        'target': VOYANTE_target,
+                        'is_LOUPGAROU': target.role == 'LOUPGAROU'
                     })
-                    print(f"[NIGHT] 🔮 La Voyante a espionné {seer_target}\n")
+                    print(f"[NUIT] La Voyante a espionné {VOYANTE_target}\n")
 
-    def request_werewolf_action(self) -> Optional[str]:
+    def request_loup_garou_action(self) -> Optional[str]:
         """Demande aux loups de choisir une victime"""
-        werewolves = [p for p in self.players.values() if p.role == 'WEREWOLF' and p.alive]
-        if not werewolves:
+        loupsgarou = [p for p in self.players.values() if p.role == 'LOUPGAROU' and p.alive]
+        if not loupsgarou:
             return None
 
-        wolf = werewolves[0]
-        alive_others = [p.player_id for p in self.players.values() if p.alive and p.player_id != wolf.player_id]
+        loup = loupsgarou[0]
+        alive_others = []
+        for p in self.players.values():
+            if p.alive and p.player_id != loup.player_id:
+                alive_others.append(p.player_id)
 
-        wolf.send_message('REQUEST_ACTION', {
+
+        loup.send_message('REQUEST_ACTION', {
             'action': 'KILL',
             'targets': alive_others
         })
 
         # Attendre la réponse
         try:
-            response = wolf.conn.recv(BUFFER_SIZE).decode('utf-8').strip()
+            response = loup.conn.recv(BUFFER_SIZE).decode('utf-8').strip()
             message = json.loads(response)
             if message['type'] == 'ACTION':
                 target = message['data']['target']
-                print(f"[NIGHT] 🐺 Les loups attaquent {target}")
+                print(f"[NUIT]  Les loups attaquent {target}")
                 return target
         except Exception as e:
             print(f"[ERROR] Erreur réception action loup: {e}")
 
         return None
 
-    def request_seer_action(self) -> Optional[str]:
+    def request_voyante_action(self) -> Optional[str]:
         """Demande à la voyante d'espionner quelqu'un"""
-        seers = [p for p in self.players.values() if p.role == 'SEER' and p.alive]
-        if not seers:
+        VOYANTES = [p for p in self.players.values() if p.role == 'VOYANTE' and p.alive]
+        if not VOYANTES:
             return None
 
-        seer = seers[0]
-        alive_others = [p.player_id for p in self.players.values() if p.alive and p.player_id != seer.player_id]
+        VOYANTE = VOYANTES[0]
+        alive_others = [p.player_id for p in self.players.values() if p.alive and p.player_id != VOYANTE.player_id]
 
-        seer.send_message('REQUEST_ACTION', {
+        VOYANTE.send_message('REQUEST_ACTION', {
             'action': 'SPY',
             'targets': alive_others
         })
 
         # Attendre la réponse
         try:
-            response = seer.conn.recv(BUFFER_SIZE).decode('utf-8').strip()
+            response = VOYANTE.conn.recv(BUFFER_SIZE).decode('utf-8').strip()
             message = json.loads(response)
             if message['type'] == 'ACTION':
                 target = message['data']['target']
-                print(f"[NIGHT] 🔮 La Voyante espionne {target}")
+                print(f"[NUIT]  La Voyante espionne {target}")
                 return target
         except Exception as e:
             print(f"[ERROR] Erreur réception action voyante: {e}")
@@ -261,7 +265,7 @@ class NarratorServer:
 
     def day_phase(self):
         """Phase de jour : vote pour éliminer quelqu'un"""
-        print("[DAY] ☀️  Le jour se lève...\n")
+        print("[JOUR] Le jour se lève...\n")
 
         # Annoncer les morts de la nuit
         dead_last_night = [p.player_id for p in self.players.values() if not p.alive]
@@ -273,7 +277,7 @@ class NarratorServer:
                 'alive_players': alive_players
             })
 
-        time.sleep(1)
+        time.sleep(3)
 
         # Vote du village
         votes = self.request_village_vote()
@@ -288,7 +292,7 @@ class NarratorServer:
             eliminated_player = self.players.get(eliminated)
             if eliminated_player:
                 eliminated_player.alive = False
-                print(f"\n[DAY] 🗳️  Le village a voté : {eliminated} est éliminé (rôle: {ROLES[eliminated_player.role]})\n")
+                print(f"\n[JOUR] Le village a voté : {eliminated} est éliminé (rôle: {ROLES[eliminated_player.role]})\n")
 
                 # Notifier tous les joueurs
                 for player in self.players.values():
@@ -303,10 +307,13 @@ class NarratorServer:
         votes = []
         alive = [p for p in self.players.values() if p.alive]
 
-        print("[DAY] 🗳️  Vote du village en cours...\n")
+        print("[JOUR] Vote du village en cours...\n")
 
         for player in alive:
-            alive_others = [p.player_id for p in self.players.values() if p.alive and p.player_id != player.player_id]
+            alive_others = []
+            for p in self.players.values():
+                if p.alive and p.player_id != player.player_id:
+                    alive_others.append(p.player_id)
 
             player.send_message('REQUEST_ACTION', {
                 'action': 'VOTE',
@@ -320,7 +327,7 @@ class NarratorServer:
                 if message['type'] == 'ACTION':
                     target = message['data']['target']
                     votes.append(target)
-                    print(f"[DAY] {player.player_id} vote contre {target}")
+                    print(f"[JOUR] {player.player_id} vote contre {target}")
             except Exception as e:
                 print(f"[ERROR] Erreur réception vote de {player.player_id}: {e}")
 
@@ -329,22 +336,28 @@ class NarratorServer:
     def check_game_over(self) -> bool:
         """Vérifie si la partie est terminée"""
         alive = [p for p in self.players.values() if p.alive]
-        werewolves_alive = [p for p in alive if p.role == 'WEREWOLF']
-        villagers_alive = [p for p in alive if p.role != 'WEREWOLF']
+        loupsgarou_alive = [p for p in alive if p.role == 'LOUPGAROU']
+        VILLAGEOIS_alive = [p for p in alive if p.role != 'LOUPGAROU']
 
-        if len(werewolves_alive) == 0:
-            print("\n[GAME OVER] 🎉 Les Villageois ont gagné !\n")
+        if len(loupsgarou_alive) == 0:
+            print("\n[GAME OVER]  Les Villageois ont gagné !\n")
             return True
 
-        if len(werewolves_alive) >= len(villagers_alive):
-            print("\n[GAME OVER] 🐺 Les Loups-Garous ont gagné !\n")
+        if len(loupsgarou_alive) >= len(VILLAGEOIS_alive):
+            print("\n[GAME OVER]  Les Loups-Garous ont gagné !\n")
             return True
 
         return False
 
     def end_game(self):
         """Termine la partie"""
-        winner = 'VILLAGERS' if not any(p.alive and p.role == 'WEREWOLF' for p in self.players.values()) else 'WEREWOLVES'
+        # Determine the winner
+        loupsgarou_still_alive = False
+        for p in self.players.values():
+            if p.alive and p.role == 'LOUPGAROU':
+                loupsgarou_still_alive = True
+                break
+        winner = 'VILLAGEOIS' if not loupsgarou_still_alive else 'loupsgarou'
 
         final_state = {
             'winner': winner,

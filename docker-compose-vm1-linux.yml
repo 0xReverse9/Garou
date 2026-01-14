@@ -6,9 +6,10 @@ version: '3.8'
 
 services:
   narrator:
-    image: localhost:443/garou-narrator:latest
+    image: 172.16.1.254:443/garou-narrator:latest
     container_name: garou-narrator
     hostname: narrator
+    pull_policy: always
     ports:
       - "5000:5000"
     environment:
@@ -18,6 +19,21 @@ services:
     networks:
       - garou-network
     restart: unless-stopped
+
+  player3:
+    image: 172.16.1.254:443/garou-player:latest
+    container_name: garou-player3
+    hostname: player3
+    pull_policy: always
+    environment:
+      - PLAYER_ID=player3
+      - NARRATOR_HOST=narrator
+      - NARRATOR_PORT=5000
+    networks:
+      - garou-network
+    restart: unless-stopped
+    depends_on:
+      - narrator
 
 networks:
   garou-network:
