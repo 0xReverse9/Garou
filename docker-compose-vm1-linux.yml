@@ -6,7 +6,7 @@ version: '3.8'
 
 services:
   narrator:
-    image: 172.16.1.254/garou-narrator:latest
+    image: 172.16.1.254:443/garou-narrator:latest
     container_name: garou-narrator
     hostname: narrator
     ports:
@@ -20,7 +20,7 @@ services:
     restart: unless-stopped
 
   player3:
-    image: 172.16.1.254/garou-player:latest
+    image: 172.16.1.254:443/garou-player:latest
     container_name: garou-player3
     hostname: player3
     environment:
