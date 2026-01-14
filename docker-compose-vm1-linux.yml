@@ -30,6 +30,8 @@ services:
     networks:
       - garou-network
     restart: unless-stopped
+    depends_on:
+      - narrator
 
 networks:
   garou-network:
